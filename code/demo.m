@@ -1,22 +1,21 @@
 % This script tests the performance of the RT-PCVM for the Reuters, 20
-% newsgroup and image dataset.
-% BETA VERSION: To evaluate th RT-PCVM for only one dataset-type, comment
-% the others.
+% newsgroup dataset
+
 
 close all;
 clear all;
-addpath(genpath('../../libsvm/matlab'));
-addpath(genpath('../../data'));
+addpath(genpath('../libsvm/matlab'));
+addpath(genpath('../data'));
 addpath(genpath('../code'));
 
 options.ker = 'rbf';      % TKL: kernel: | 'rbf' |'srbf | 'lap'
 options.eta = 2.0;        % TKL: eigenspectrum damping factor
 options.gamma = 1;        % TKL: width of gaussian kernel
 options.svmc = 10.0;      % SVM: complexity regularizer in LibSVM
-options.theta = 1;
+options.theta = 1;        % PCVM: width of kernel
 
 testSize= 5;
-for strData = {'org_vs_people','org_vs_place', 'people_vs_place'} %
+for strData =  {'org_vs_people','org_vs_place', 'people_vs_place'}
     
     errResult = [];
     nvecResult = [];
@@ -24,7 +23,7 @@ for strData = {'org_vs_people','org_vs_place', 'people_vs_place'} %
     for iData = 1:2
         data = char(strData);
         data = strcat(data, '_', num2str(iData));
-        load(strcat('../../data/Reuters/', data));
+        load(strcat('../data/Reuters/', data));
         
         fprintf('data=%s\n', data);
         
@@ -38,14 +37,18 @@ for strData = {'org_vs_people','org_vs_place', 'people_vs_place'} %
         soureIndx = crossvalind('Kfold', Ys, 2);
         targetIndx = crossvalind('Kfold', Yt, 2);
         
-        Z = Xs(find(soureIndx==1),:);
+        Z = Z(find(soureIndx==1),:);
         Ys = Ys(find(soureIndx==1),:);
         
         
-        X = Xt(find(targetIndx==1),:);
+        X = X(find(targetIndx==1),:);
         Yt = Yt(find(targetIndx==1),:);
         
-        %% SVM 
+        
+        m = size(Z, 1);
+        n = size(X, 1);
+        
+        %% SVM
         K = kernel(options.ker, [Z', X'], [],options.gamma);
         
         model = svmtrain(full(Ys), [(1:m)', K(1:m, 1:m)], ['-c ', num2str(options.svmc), ' -t 4 -q 1']);
@@ -55,9 +58,9 @@ for strData = {'org_vs_people','org_vs_place', 'people_vs_place'} %
         
         %% PCVM
         
-        model = pcvm_train(Z,Ys,options.gamma);
+        model = pcvm_train(Z,Ys,options.theta);
         [erate, nvec, label, y_prob] = pcvm_predict(Z,Ys,X,Yt,model);
-         erate = erate*100;
+        erate = erate*100;
         fprintf('\nPCVM %.2f%% \n', erate);
         
         %% BTPCVM
@@ -73,7 +76,7 @@ for ngData = {'comp_vs_rec','comp_vs_sci','comp_vs_talk','rec_vs_sci','rec_vs_ta
         
         data = char(ngData);
         data = strcat(data, '_', num2str(j));
-        load(strcat('../../data/20Newsgroup/', data));
+        load(strcat('../data/20Newsgroup/', data));
         fprintf('data=%s\n', data);
         
         %% Z-SCORE and Sampling
@@ -91,8 +94,12 @@ for ngData = {'comp_vs_rec','comp_vs_sci','comp_vs_talk','rec_vs_sci','rec_vs_ta
         
         X = X(find(targetIndx==1),:);
         Yt = Yt(find(targetIndx==1),:);
-       
-        %% SVM 
+        
+        
+        m = size(Z, 1);
+        n = size(X, 1);
+        
+        %% SVM
         K = kernel(options.ker, [Z', X'], [],options.gamma);
         
         model = svmtrain(full(Ys), [(1:m)', K(1:m, 1:m)], ['-c ', num2str(options.svmc), ' -t 4 -q 1']);
@@ -101,9 +108,9 @@ for ngData = {'comp_vs_rec','comp_vs_sci','comp_vs_talk','rec_vs_sci','rec_vs_ta
         fprintf('SVM = %0.4f\n', acc(1));
         
         %% PCVM
-        model = pcvm_train(Z,Ys,options.gamma);
+        model = pcvm_train(Z,Ys,options.theta);
         [erate, nvec, label, y_prob] = pcvm_predict(Z,Ys,X,Yt,model);
-         erate = erate*100;
+        erate = erate*100;
         fprintf('\nPCVM %.2f%% \n', erate);
         
         %% BTPCVM
