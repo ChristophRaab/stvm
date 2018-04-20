@@ -1,7 +1,8 @@
-% This script tests the performance of the RT-PCVM for the Reuters, 20
-% newsgroup dataset
-
-
+% This script tests the performance of the BTPCVM for the Reuters, 20
+% newsgroup dataset.
+% Kernel Script from M. Long, J. Wang, J. Sun and P. S. Yu, "Domain 
+% Invariant Transfer Kernel Learning," in IEEE Transactions on Knowledge
+% and Data Engineering
 close all;
 clear all;
 addpath(genpath('../libsvm/matlab'));
@@ -15,13 +16,13 @@ options.svmc = 10.0;      % SVM: complexity regularizer in LibSVM
 options.theta = 1;        % PCVM: width of kernel
 
 testSize= 5;
-for strData =  {'org_vs_people','org_vs_place', 'people_vs_place'}
+for name =  {'org_vs_people','org_vs_place', 'people_vs_place'}
     
     errResult = [];
     nvecResult = [];
     
     for iData = 1:2
-        data = char(strData);
+        data = char(name);
         data = strcat(data, '_', num2str(iData));
         load(strcat('../data/Reuters/', data));
         
@@ -64,17 +65,17 @@ for strData =  {'org_vs_people','org_vs_place', 'people_vs_place'}
         fprintf('\nPCVM %.2f%% \n', erate);
         
         %% BTPCVM
-        model = rtpcvm_train(full(Z),full(Ys),full(X),options);
-        [erate, nvec, label, y_prob] = rtpcvm_predict(Yt,model);
+        model = btpcvm_train(full(Z),full(Ys),full(X),options);
+        [erate, nvec, label, y_prob] = btpcvm_predict(Yt,model);
         erate = erate*100;
         fprintf('\nBTPCVM %.2f%% \n', erate);
     end
 end
 
-for ngData = {'comp_vs_rec','comp_vs_sci','comp_vs_talk','rec_vs_sci','rec_vs_talk','sci_vs_talk'}%
+for name = {'comp_vs_rec','comp_vs_sci','comp_vs_talk','rec_vs_sci','rec_vs_talk','sci_vs_talk'}%
     for j=1:36
         
-        data = char(ngData);
+        data = char(name);
         data = strcat(data, '_', num2str(j));
         load(strcat('../data/20Newsgroup/', data));
         fprintf('data=%s\n', data);

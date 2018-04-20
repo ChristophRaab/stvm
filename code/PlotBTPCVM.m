@@ -26,14 +26,10 @@ for n=3:1:3
     % the kernel is calculated as exp(- theta*theta* DistMat)
     % Due to the EM algorithm, the initial value of theta is important and
     % should be chosen for different data sets
-    options.ker = 'rbf';      % TKL: kernel: 'linear' | 'rbf' | 'lap'
-    options.eta = 2.0;           % TKL: eigenspectrum damping factor
-    options.gamma = 1.0;         % TKL: width of gaussian kernel
-    options.k = 100;              % JDA: subspaces bases
-    options.lambda = 1.0;        % JDA: regularization parameter
-    options.svmc = 10.0;         % SVM: complexity regularizer in LibSVM
-    options.g = 40;              % GFK: subspace dimension
-    options.tcaNv = 50;          % TCA: numbers of Vectors after reduction
+    options.ker = 'rbf';      %kernel: 'linear' | 'rbf' | 'lap'
+
+    options.g = 40;           % GFK: subspace dimension
+    options.tcaNv = 50;       % TCA: numbers of Vectors after reduction
     options.theta = 1;
     
     Xs = trainX'; Xt = testX'; Ys = trainY; Yt = testY;
@@ -49,9 +45,7 @@ for n=3:1:3
     theta_initial	= 1;
     
     
-    fprintf('\nPCVM CLASSIFICATION test error: %.2f%%', erate*100)
-    fprintf('\nThe initial theta is : %.2f', theta_initial)
-    fprintf('\nThe optimized theta is : %.2f', options.theta)
+    fprintf('\nBTPCVM CLASSIFICATION test error: %.2f%%', erate*100)
     fprintf('\nNumber of vectors : %d \n \n',nvec)
     
     [trainX,loss1]  = tsne(full(trainX),'Algorithm','barneshut','NumDimensions',2,'NumPCAComponents',i,'Perplexity',j);
@@ -80,16 +74,8 @@ for n=3:1:3
     [grid1 grid2]	= meshgrid(range1,range2);
     Xgrid		= [grid1(:) grid2(:)];
     
-    % Compute PCVM over a grid for visualisation purposes
-    %         modelplot = pctkvm_train(trainX,Ys,Xgrid,options);
-    %         [erate1, nvec1, label, y_grid] = pctkvm_predict(Ys,Yt,modelplot);
-    %
-    % Show decision boundary (p=0.5) and illustrate p=0.25 and 0.75
-    %contour(range1,range2,reshape(y_grid,size(grid1)),[0.5 0.5],'--','Color','g','LineWidth',2);
-    %contour(range1,range2,reshape(y_grid,size(grid1)),[0.25 0.75],'--','Color',0.7*[1 1 1],'LineWidth',2);
-    
     plot(trainX(model.used,1),trainX(model.used,2),'ko','LineWidth',2);
     xlabel("Kullback–Leibler divergence Original vs Reduced Space = "+num2str(loss1+loss2/2));
-    title("PCTKVM, Number Vectors = "+num2str(nvec)+", Error = "+num2str(round(erate*100))+"%" ,'FontSize',14)
+    title("BTPCVM, Number Vectors = "+num2str(nvec)+", Error = "+num2str(round(erate*100))+"%" ,'FontSize',14)
 end
 
