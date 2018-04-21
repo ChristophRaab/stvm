@@ -1,4 +1,4 @@
-function [model] = rtpcvm_train(trainX,trainY,testX,options)
+function [model] = svtm_train(trainX,trainY,testX,options)
 % Implementations of Probabilistic Classification Transfer Kernel Vector Machines.
 %
 % The original PCVM Algorithm is presented in the following paper:
@@ -7,7 +7,7 @@ function [model] = rtpcvm_train(trainX,trainY,testX,options)
 %	Copyright (c) Huanhuan Chen
 % The following improvments by Christoph Raab:
 % Ability to Transfer Learning with SVD Rotation to algin source and target
-% distributions. 
+% distributions.
 % BETA VERSION
 % Optional: theta estimation
 % Multi-Class Label with One vs One
@@ -30,49 +30,55 @@ sizeC = size(C,1);
 if sizeC == 2
     
     %    Align of feature space examples
-    if size(trainX,1) > size(testX,1)
-        
-        
-        indxYs1 = find(trainY==1);
-        indxYs2 = find(trainY==-1);
-        
-        s1 = size(indxYs1,1);
-        s2 = size(indxYs2,1);
-        
-        if (s1 >= round(size(testX,1)/2)) &&(s2 >= round(size(testX,1)/2))
-            s1 = round(size(testX,1)/2); s2 = round(size(testX,1)/2);
-        elseif s1 < round(size(testX,1)/2)
-            labelDiff = abs(size(testX,1)/2-s1);
-            s2 =s1+2*labelDiff;
-        elseif s2 < round(size(testX,1)/2)
-            labelDiff = abs(size(testX,1)/2-s2);
-            s1 =s2+2*labelDiff;
+    if size(trainX,1) ~= size(testX,1)
+        if size(trainX,1) > size(testX,1)
+            
+            
+            indxYs1 = find(trainY==1);
+            indxYs2 = find(trainY==-1);
+            
+            s1 = size(indxYs1,1);
+            s2 = size(indxYs2,1);
+            
+            if (s1 >= round(size(testX,1)/2)) &&(s2 >= round(size(testX,1)/2))
+                s1 = round(size(testX,1)/2); s2 = round(size(testX,1)/2);
+            elseif s1 < round(size(testX,1)/2)
+                labelDiff = abs(size(testX,1)/2-s1);
+                s2 =s1+2*labelDiff;
+            elseif s2 < round(size(testX,1)/2)
+                labelDiff = abs(size(testX,1)/2-s2);
+                s1 =s2+2*labelDiff;
+            end
+            
+            
+            trainX1 = trainX(indxYs1,:);
+            C1 = cov(trainX1');
+            [v,e] = eigs(C1,s1);
+            trainX1 = (trainX1' * v)';
+            
+            trainX2 = trainX(indxYs2,:);
+            C2 = cov(trainX2');
+            [v,e] = eigs(C2,s2);
+            trainX2 = (trainX2' * v)';
+            
+            trainX = [trainX1;trainX2];
+            trainY = [ones(size(trainX1,1),1);ones(size(trainX2,1),1)*-1];
+            
+            if(size(trainX,1) > size(testX,1))
+                trainX = trainX(1:size(testX,1),:);
+                trainY = trainY(1:size(trainX,1),:);
+            end
+        else
+            
+            trainXX = zeros(size(testX));
+            trainXX(1:size(trainX,1),1:size(trainX,2)) = trainX;
+            trainX = trainXX;
+            nullLabels = size(testX,1)-size(trainY,1);
+            addTrainLabels = randi([0 1], nullLabels,1);
+            addTrainLabels(find(addTrainLabels==0)) = -1;
+            trainY = [trainY;addTrainLabels];
+            
         end
-        
-        
-        trainX1 = trainX(indxYs1,:);
-        C1 = cov(trainX1');
-        [v,e] = eigs(C1,s1);
-        trainX1 = (trainX1' * v)';
-        
-        trainX2 = trainX(indxYs2,:);
-        C2 = cov(trainX2');
-        [v,e] = eigs(C2,s2);
-        trainX2 = (trainX2' * v)';
-        
-        trainX = [trainX1;trainX2];
-        trainY = [ones(size(trainX1,1),1);ones(size(trainX2,1),1)*-1];
-        
-    else
-        
-        trainXX = zeros(size(testX));
-        trainXX(1:size(trainX,1),1:size(trainX,2)) = trainX;
-        trainX = trainXX;
-        nullLabels = size(testX,1)-size(trainY,1);
-        addTrainLabels = randi([0 1], nullLabels,1);
-        addTrainLabels(find(addTrainLabels==0)) = -1;
-        trainY = [trainY;addTrainLabels];
-        
     end
     
     [~,ZS,~] = svd(trainX,'econ');
@@ -124,13 +130,8 @@ if sizeC == 2
     end
     
     
-    if options.theta == -1
-        options.gamma  = thetaEstimation([trainX' testX']);
-    else
-        options.gamma = options.theta;
-    end
-    theta = options.gamma;
-    K = kernel(options.ker, [trainX', testX'], [],options.gamma);
+    theta = options.theta;
+    K = kernel(options.ker, [trainX', testX'], [],theta);
     
     % Take the left upper square of the K Matrix for the learning algorithm
     Kl = K(1:ndata,1:ndata);
@@ -235,7 +236,7 @@ elseif sizeC > 2
             
             trainXOR= [trainX(oneIndx,:); trainX(twoIndx,:)];
             
-            singleM = rtpcvm_train(trainXOR,trainYOR,testX,options);
+            singleM = svtm_train(trainXOR,trainYOR,testX,options);
             singleM.one = one; singleM.two = two;
             model(u) = singleM;
             

@@ -65,8 +65,8 @@ for name =  {'org_vs_people','org_vs_place', 'people_vs_place'}
         fprintf('\nPCVM %.2f%% \n', erate);
         
         %% BTPCVM
-        model = btpcvm_train(full(Z),full(Ys),full(X),options);
-        [erate, nvec, label, y_prob] = btpcvm_predict(Yt,model);
+        model = stvm_train(full(Z),full(Ys),full(X),options);
+        [erate, nvec, label, y_prob] = stvm_predict(Yt,model);
         erate = erate*100;
         fprintf('\nBTPCVM %.2f%% \n', erate);
     end
@@ -115,8 +115,8 @@ for name = {'comp_vs_rec','comp_vs_sci','comp_vs_talk','rec_vs_sci','rec_vs_talk
         fprintf('\nPCVM %.2f%% \n', erate);
         
         %% BTPCVM
-        model = rtpcvm_train(full(Z),full(Ys),full(X),options);
-        [erate, nvec, label, y_prob] = rtpcvm_predict(Yt,model);
+        model = stvm_train(full(Z),full(Ys),full(X),options);
+        [erate, nvec, label, y_prob] = stvm_predict(Yt,model);
         erate = erate*100;
         fprintf('\nBTPCVM %.2f%% \n', erate);
     end

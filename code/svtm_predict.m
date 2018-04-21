@@ -1,4 +1,4 @@
-function [erate, nvec, y_sign, y_prob] = rtpcvm_predict(testY,model)
+function [erate, nvec, y_sign, y_prob] = svtm_predict(testY,model)
 
 sizeM = size(model,2);
 
