@@ -1,2 +1,2 @@
-# btpcvm
-Matlab source code for the BTPCVM
+# STVM
+Matlab source code for the STVM
