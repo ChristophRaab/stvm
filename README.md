@@ -1,2 +1,2 @@
-# btpcvm
-Matlab source code for the BTPCVM
+# Sparse Transfer Classiciation
+Matlab source code for the STVM
