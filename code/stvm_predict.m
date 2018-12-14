@@ -1,17 +1,17 @@
-function [erate, nvec, y_sign, y_prob] = stvm_predict(Yt,model)
+function [erate, nvec, y_sign, y_prob] = stvm_predict(testY,model)
 
 sizeM = size(model,2);
 
 if sizeM == 1
-    m = size(model.Ys,1);
+    m = size(model.trainY,1);
    
-    K = model.K;
+    K = model.K(m+1:end, 1:m);
     w = model.w;
     b = model.b;
-    Ys = model.Ys;
+    trainY = model.trainY;
     used = model.used;
     
-    weights = w(used).*Ys(used);
+    weights = w(used).*trainY(used);
     
     % Compute RVM over test data and calculate error
     PHI	= K(:,used);
@@ -23,7 +23,7 @@ if sizeM == 1
     % the probablistic output
     y_prob = normcdf(Y_regress);
     
-    errs	= sum(y_sign(Yt== -1)~=-1) + sum(y_sign(Yt==1)~=1);
+    errs	= sum(y_sign(testY== -1)~=-1) + sum(y_sign(testY==1)~=1);
     erate = errs/test_num;
     nvec = length(used);
 elseif sizeM > 2
@@ -31,23 +31,23 @@ elseif sizeM > 2
     usedVectors = [];
     multiLabels = [];
     multiProb = [];
-    %     multiProb = zeros(size(Yt,1),sizeM);
+    %     multiProb = zeros(size(testY,1),sizeM);
     
     % For-Loop to calculate One vs One prediction
     for i = 1:size(model,2)
-        Ys = model(i).Ys;
+        trainY = model(i).trainY;
         % Taking the corrosponding labels from original train label vector
-        oneIndx = find(Ys == model(i).one);
-        twoIndx = find(Ys == model(i).two);
+        oneIndx = find(trainY == model(i).one);
+        twoIndx = find(trainY == model(i).two);
         
         % Merge the label vectors into one training vector
-        YsOR = [ones(size(oneIndx,1),1); ones(size(twoIndx,1),1)*-1];
+        trainYOR = [ones(size(oneIndx,1),1); ones(size(twoIndx,1),1)*-1];
         
-        m = size(YsOR,1);
+        m = size(trainYOR,1);
         
         % Taking the lower left square for prediction
     
-        [erate, nvec, label, y_prob] = stvm_predict(Yt,model(i));
+        [erate, nvec, label, y_prob] = stvm_predict(testY,model(i));
         
         label(find(label==1)) = model(i).one;
         label(find(label==-1)) = model(i).two;
@@ -90,8 +90,8 @@ elseif sizeM > 2
     % Take rounded means to for the integer class label assignment
     % y_sign = round(nanmean(multiLabels')');
     % nvec = unique(usedVectors);
-    resulterror = abs(Yt-y_sign);
-    erate = size(resulterror(resulterror ~=0),1) / size(Yt,1);
+    resulterror = abs(testY-y_sign);
+    erate = size(resulterror(resulterror ~=0),1) / size(testY,1);
     
     fprintf('\nPCTKVM Acc: %f\n',1-erate);
 else
