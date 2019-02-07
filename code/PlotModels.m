@@ -22,8 +22,8 @@ Yt = Yt(find(targetIndx==1),:);
 options.theta = 1;
 options.ker = 'rbf';
 %Train and predict
-modelstvm = btpcvm_train(Xs,Ys,Xt,options);
-[erate, nvec, y_sign, y_prob] = btpcvm_predict(Yt,modelstvm);
+modelstvm = stvm_train(Xs,Ys,Xt,options);
+[erate, nvec, y_sign, y_prob] = stvm_predict(Yt,modelstvm);
 
 % Parameters for tkl-svm
 m = size(Xs, 1);
