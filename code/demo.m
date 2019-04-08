@@ -115,7 +115,7 @@ for name = {'comp_vs_rec','comp_vs_sci','comp_vs_talk','rec_vs_sci','rec_vs_talk
 %         erate = erate*100;
 %         fprintf('\nPCVM %.2f%% \n', erate);
         
-        %% BTPCVM
+        %% newsgroup1
         model = stvm_train(full(Z),full(Ys),full(X),options);
         [erate, nvec, label, y_prob] = stvm_predict(Yt,model);
         erate = erate*100;
